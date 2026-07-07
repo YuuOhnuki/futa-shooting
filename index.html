@@ -2,80 +2,737 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>風太シューティング</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Futa Shooting</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: #070a12;
+      color: #f4f7ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 80%, rgba(51, 119, 255, .22), transparent 35%),
+        linear-gradient(180deg, #050713, #111728 55%, #070a12);
+    }
+
+    #game {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      cursor: crosshair;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 16px 16px auto 16px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+      text-shadow: 0 2px 8px #000;
+      font-weight: 700;
+    }
+
+    .hud__group {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      padding: 8px 10px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 8px;
+      background: rgba(6, 10, 22, .56);
+      backdrop-filter: blur(10px);
+    }
+
+    .bar {
+      width: 150px;
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .14);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12);
+    }
+
+    .bar span {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #42e6a4, #e5ff72);
+      transform-origin: left;
+    }
+
+    .center {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      text-align: center;
+    }
+
+    .panel {
+      width: min(440px, calc(100vw - 32px));
+      padding: 22px;
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 8px;
+      background: rgba(8, 12, 25, .72);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .45);
+      backdrop-filter: blur(16px);
+    }
+
+    .panel h1 {
+      margin: 0 0 10px;
+      font-size: clamp(32px, 7vw, 58px);
+      letter-spacing: 0;
+    }
+
+    .panel p {
+      margin: 8px 0;
+      color: #cfdbff;
+      line-height: 1.6;
+    }
+
+    .panel kbd {
+      border: 1px solid rgba(255, 255, 255, .3);
+      border-radius: 5px;
+      padding: 2px 6px;
+      background: rgba(255, 255, 255, .1);
+      color: #fff;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <main class="app">
-    <canvas id="gameCanvas" width="960" height="640" aria-label="風太シューティングのゲーム画面"></canvas>
-    <div id="decorFutas" class="floating-futas active" aria-hidden="true">
-      <img class="futa-sticker sticker-pop" src="assets/futa.png" alt="" onerror="this.style.display='none'">
-      <img class="futa-sticker sticker-gold" src="assets/futa_golden.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
-      <img class="futa-sticker sticker-speed" src="assets/futa_speed.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
-      <img class="futa-sticker sticker-mini" src="assets/futa_mini.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
+  <canvas id="game"></canvas>
+  <div class="hud">
+    <div class="hud__group">
+      <span>Score <b id="score">0</b></span>
+      <span>Wave <b id="wave">1</b></span>
+      <span>Combo <b id="combo">x1</b></span>
     </div>
+    <div class="hud__group">
+      <span>Hull</span>
+      <div class="bar"><span id="health"></span></div>
+      <span id="heatText">Heat 0%</span>
+    </div>
+  </div>
+  <div class="center" id="overlay">
+    <div class="panel">
+      <h1>Futa Shooting</h1>
+      <p><kbd>WASD</kbd> / <kbd>Arrow</kbd> move, mouse aim, click shoot.</p>
+      <p>Collect cores, chain kills, survive capped-speed enemy waves.</p>
+      <p><kbd>Enter</kbd> or click to start.</p>
+    </div>
+  </div>
 
-    <section id="titleScreen" class="screen screen-active">
-      <div class="panel title-panel">
-        <p class="eyebrow">60秒カジュアルシューティング</p>
-        <h1>風太シューティング</h1>
-        <div class="futa-lineup" aria-hidden="true">
-          <img class="lineup-img lineup-normal" src="assets/futa.png" alt="" onerror="this.style.display='none'">
-          <img class="lineup-img lineup-rapid" src="assets/futa_rapid.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
-          <img class="lineup-img lineup-slow" src="assets/futa_slow.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
-          <img class="lineup-img lineup-golden" src="assets/futa_golden.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
-        </div>
-        <p class="lead">動き回る風太を狙ってコンボをつなげよう。</p>
-        <button id="startButton" class="primary-button">スタート</button>
-        <button id="soundToggleTitle" class="secondary-button" type="button">SOUND ON</button>
-        <div class="info-grid">
-          <p>クリック / タップ / Space：発射</p>
-          <p>マウス / ドラッグ / ← →：移動</p>
-          <p>スマホ：下の左右ボタンでも操作</p>
-        </div>
-        <p class="highscore-line">最高スコア <strong id="titleHighScore">0</strong></p>
-      </div>
-    </section>
+  <script>
+    const canvas = document.querySelector("#game");
+    const ctx = canvas.getContext("2d");
+    const ui = {
+      score: document.querySelector("#score"),
+      wave: document.querySelector("#wave"),
+      combo: document.querySelector("#combo"),
+      health: document.querySelector("#health"),
+      heat: document.querySelector("#heatText"),
+      overlay: document.querySelector("#overlay")
+    };
 
-    <section id="hud" class="hud" aria-live="polite">
-      <div><span>SCORE</span><strong id="scoreDisplay">0</strong></div>
-      <div><span>HP</span><strong id="hpDisplay">5</strong></div>
-      <div><span>TIME</span><strong id="timeDisplay">60.0</strong></div>
-      <div><span>COMBO</span><strong id="comboDisplay">0</strong></div>
-      <div><span>POWER</span><strong id="powerDisplay">なし</strong></div>
-      <div><span>BEST</span><strong id="gameHighScore">0</strong></div>
-    </section>
+    const keys = new Set();
+    const mouse = { x: 0, y: 0, down: false };
+    const rand = (min, max) => Math.random() * (max - min) + min;
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    const dist2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
+    const TAU = Math.PI * 2;
+    const ENEMY_MAX_SPEED = 260;
+    const STAR_COUNT = 110;
+    const ENEMY_IMAGE_PATHS = [
+      "assets/futa.png",
+      "assets/futa_mini.png",
+      "assets/futa_speed.png",
+      "assets/futa_rapid.png",
+      "assets/futa_slow.png",
+      "assets/futa_golden.png",
+      "assets/futa_result.png"
+    ];
+    const enemyImages = ENEMY_IMAGE_PATHS.map(src => {
+      const img = new Image();
+      img.src = src;
+      return img;
+    });
 
-    <button id="soundToggleGame" class="sound-button" type="button">SOUND ON</button>
+    let width = 0;
+    let height = 0;
+    let audio;
+    let lastTime = performance.now();
+    let game;
 
-    <div id="comboSplash" class="combo-splash"></div>
+    function resize() {
+      const scale = Math.max(1, Math.min(2, devicePixelRatio || 1));
+      width = innerWidth;
+      height = innerHeight;
+      canvas.width = Math.floor(width * scale);
+      canvas.height = Math.floor(height * scale);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    }
 
-    <section id="mobileControls" class="mobile-controls" aria-label="スマホ操作">
-      <button id="leftButton" type="button">←</button>
-      <button id="fireButton" type="button">FIRE</button>
-      <button id="rightButton" type="button">→</button>
-    </section>
+    function resetGame() {
+      game = {
+        running: true,
+        score: 0,
+        wave: 1,
+        waveTimer: 0,
+        shake: 0,
+        slowmo: 0,
+        flash: 0,
+        combo: 1,
+        comboTimer: 0,
+        player: {
+          x: width / 2,
+          y: height * .72,
+          vx: 0,
+          vy: 0,
+          r: 15,
+          hp: 100,
+          heat: 0,
+          fireCooldown: 0,
+          invuln: 1.2
+        },
+        bullets: [],
+        enemies: [],
+        particles: [],
+        pickups: [],
+        stars: Array.from({ length: STAR_COUNT }, () => ({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          z: rand(.25, 1),
+          twinkle: Math.random() * TAU
+        }))
+      };
+      ui.overlay.querySelector("h1").textContent = "Futa Shooting";
+      ui.overlay.querySelectorAll("p")[0].innerHTML = "<kbd>WASD</kbd> / <kbd>Arrow</kbd> move, mouse aim, click shoot.";
+      ui.overlay.querySelectorAll("p")[1].textContent = "Collect cores, chain kills, survive capped-speed enemy waves.";
+      ui.overlay.querySelectorAll("p")[2].innerHTML = "<kbd>Enter</kbd> or click to start.";
+      spawnWave();
+      ui.overlay.classList.add("hidden");
+    }
 
-    <section id="resultScreen" class="screen">
-      <div class="panel result-panel">
-        <p class="eyebrow">RESULT</p>
-        <img class="result-futa" src="assets/futa_result.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
-        <h2 id="rankDisplay">Cランク</h2>
-        <dl class="result-list">
-          <div><dt>最終スコア</dt><dd id="finalScore">0</dd></div>
-          <div><dt>最大コンボ</dt><dd id="maxCombo">0</dd></div>
-          <div><dt>命中率</dt><dd id="accuracy">0%</dd></div>
-          <div><dt>最高スコア</dt><dd id="resultHighScore">0</dd></div>
-        </dl>
-        <p id="newRecord" class="new-record"></p>
-        <div class="button-row">
-          <button id="restartButton" class="primary-button">もう一度遊ぶ</button>
-          <button id="backTitleButton" class="secondary-button">タイトルに戻る</button>
-        </div>
-      </div>
-    </section>
-  </main>
-  <script src="script.js"></script>
+    function ensureAudio() {
+      if (audio) return audio;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      audio = new Ctx();
+      audio.master = audio.createGain();
+      audio.master.gain.value = .38;
+      audio.master.connect(audio.destination);
+
+      audio.music = audio.createGain();
+      audio.music.gain.value = .04;
+      audio.music.connect(audio.master);
+      startPulse();
+      return audio;
+    }
+
+    function playTone(freq, duration, type, gain, slide = 0) {
+      const a = ensureAudio();
+      const now = a.currentTime;
+      const osc = a.createOscillator();
+      const amp = a.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+      if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq + slide), now + duration);
+      amp.gain.setValueAtTime(0, now);
+      amp.gain.linearRampToValueAtTime(gain, now + .01);
+      amp.gain.exponentialRampToValueAtTime(.0001, now + duration);
+      osc.connect(amp);
+      amp.connect(a.master);
+      osc.start(now);
+      osc.stop(now + duration + .02);
+    }
+
+    function playNoise(duration, gain, filterFreq) {
+      const a = ensureAudio();
+      const now = a.currentTime;
+      const buffer = a.createBuffer(1, Math.floor(a.sampleRate * duration), a.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+      const src = a.createBufferSource();
+      const filter = a.createBiquadFilter();
+      const amp = a.createGain();
+      src.buffer = buffer;
+      filter.type = "bandpass";
+      filter.frequency.value = filterFreq;
+      filter.Q.value = 1.8;
+      amp.gain.setValueAtTime(gain, now);
+      amp.gain.exponentialRampToValueAtTime(.0001, now + duration);
+      src.connect(filter);
+      filter.connect(amp);
+      amp.connect(a.master);
+      src.start(now);
+    }
+
+    function startPulse() {
+      const a = audio;
+      const notes = [82, 98, 123, 147];
+      let step = 0;
+      setInterval(() => {
+        if (!game?.running || a.state !== "running") return;
+        const now = a.currentTime;
+        const osc = a.createOscillator();
+        const amp = a.createGain();
+        const filter = a.createBiquadFilter();
+        osc.type = "triangle";
+        osc.frequency.value = notes[step++ % notes.length];
+        filter.type = "lowpass";
+        filter.frequency.value = 420 + game.wave * 24;
+        amp.gain.setValueAtTime(.0001, now);
+        amp.gain.linearRampToValueAtTime(.055, now + .02);
+        amp.gain.exponentialRampToValueAtTime(.0001, now + .22);
+        osc.connect(filter);
+        filter.connect(amp);
+        amp.connect(a.music);
+        osc.start(now);
+        osc.stop(now + .25);
+      }, 285);
+    }
+
+    function spawnWave() {
+      const count = 3 + Math.ceil(game.wave * 1.25);
+      for (let i = 0; i < count; i++) spawnEnemy(i < game.wave / 2 ? "dash" : "chaser");
+      if (game.wave % 3 === 0) spawnEnemy("tank");
+    }
+
+    function spawnEnemy(type) {
+      const side = Math.floor(rand(0, 4));
+      const pos = [
+        { x: rand(0, width), y: -30 },
+        { x: width + 30, y: rand(0, height) },
+        { x: rand(0, width), y: height + 30 },
+        { x: -30, y: rand(0, height) }
+      ][side];
+      const config = {
+        chaser: { r: 22, hp: 4, speed: 72 + game.wave * 8, value: 180, color: "#ff4d77" },
+        dash: { r: 18, hp: 3, speed: 120 + game.wave * 10, value: 220, color: "#ffd166" },
+        tank: { r: 34, hp: 13 + game.wave * 2, speed: 48 + game.wave * 4, value: 720, color: "#9b5cff" }
+      }[type];
+      game.enemies.push({
+        ...pos,
+        ...config,
+        type,
+        spriteIndex: Math.floor(rand(0, enemyImages.length)),
+        vx: 0,
+        vy: 0,
+        wobble: rand(0, TAU),
+        speed: Math.min(config.speed, ENEMY_MAX_SPEED)
+      });
+    }
+
+    function fire() {
+      const p = game.player;
+      if (p.fireCooldown > 0 || p.heat >= 100) return;
+      const angle = Math.atan2(mouse.y - p.y, mouse.x - p.x);
+      const spread = p.heat > 65 ? rand(-.07, .07) : rand(-.025, .025);
+      const finalAngle = angle + spread;
+      game.bullets.push({
+        x: p.x + Math.cos(finalAngle) * 18,
+        y: p.y + Math.sin(finalAngle) * 18,
+        vx: Math.cos(finalAngle) * 780,
+        vy: Math.sin(finalAngle) * 780,
+        r: 4,
+        life: .8,
+        damage: 1
+      });
+      p.fireCooldown = .095;
+      p.heat += 5.2;
+      game.shake = Math.max(game.shake, 2);
+      playTone(520 + rand(-30, 40), .08, "square", .045, 240);
+      playNoise(.055, .018, 2800);
+    }
+
+    function update(dt) {
+      if (!game?.running) return;
+      dt = Math.min(dt, .033);
+      const p = game.player;
+      const intensity = game.slowmo > 0 ? .55 : 1;
+      const step = dt * intensity;
+      game.waveTimer += step;
+      game.shake = Math.max(0, game.shake - dt * 16);
+      game.slowmo = Math.max(0, game.slowmo - dt);
+      game.flash = Math.max(0, game.flash - dt * 4);
+      game.comboTimer = Math.max(0, game.comboTimer - step);
+      if (game.comboTimer <= 0) game.combo = 1;
+
+      updatePlayer(p, step);
+      if (mouse.down) fire();
+      p.fireCooldown = Math.max(0, p.fireCooldown - step);
+      p.heat = Math.max(0, p.heat - step * 22);
+      p.invuln = Math.max(0, p.invuln - step);
+
+      updateBullets(step);
+      updateEnemies(step);
+      updatePickups(step);
+      updateParticles(step);
+      updateStars(step);
+
+      if (game.enemies.length === 0) {
+        game.wave += 1;
+        p.hp = Math.min(100, p.hp + 18);
+        p.heat = Math.max(0, p.heat - 35);
+        spawnWave();
+        playTone(240, .18, "sawtooth", .055, 480);
+      }
+      updateHud();
+    }
+
+    function updatePlayer(p, dt) {
+      const ax = (keys.has("KeyD") || keys.has("ArrowRight")) - (keys.has("KeyA") || keys.has("ArrowLeft"));
+      const ay = (keys.has("KeyS") || keys.has("ArrowDown")) - (keys.has("KeyW") || keys.has("ArrowUp"));
+      const len = Math.hypot(ax, ay) || 1;
+      const boosting = keys.has("ShiftLeft") || keys.has("ShiftRight");
+      const accel = boosting ? 1850 : 1450;
+      const drag = boosting ? .88 : .85;
+      p.vx += (ax / len) * accel * dt;
+      p.vy += (ay / len) * accel * dt;
+      p.vx *= drag;
+      p.vy *= drag;
+      p.x = clamp(p.x + p.vx * dt, p.r, width - p.r);
+      p.y = clamp(p.y + p.vy * dt, p.r, height - p.r);
+    }
+
+    function updateBullets(dt) {
+      for (const b of game.bullets) {
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        b.life -= dt;
+        for (const e of game.enemies) {
+          if (e.hp > 0 && dist2(b, e) < (b.r + e.r) ** 2) {
+            e.hp -= b.damage;
+            b.life = 0;
+            burst(b.x, b.y, e.color, 7, 110);
+            playTone(180 + e.r * 9, .07, "triangle", .035, -80);
+            if (e.hp <= 0) killEnemy(e);
+            break;
+          }
+        }
+      }
+      game.bullets = game.bullets.filter(b => b.life > 0 && b.x > -40 && b.x < width + 40 && b.y > -40 && b.y < height + 40);
+    }
+
+    function updateEnemies(dt) {
+      const p = game.player;
+      for (const e of game.enemies) {
+        e.wobble += dt * 4;
+        const angle = Math.atan2(p.y - e.y, p.x - e.x) + Math.sin(e.wobble) * .32;
+        const desired = Math.min(e.speed + game.wave * 2, ENEMY_MAX_SPEED);
+        e.vx += Math.cos(angle) * desired * 3.1 * dt;
+        e.vy += Math.sin(angle) * desired * 3.1 * dt;
+        const speed = Math.hypot(e.vx, e.vy);
+        if (speed > ENEMY_MAX_SPEED) {
+          e.vx = (e.vx / speed) * ENEMY_MAX_SPEED;
+          e.vy = (e.vy / speed) * ENEMY_MAX_SPEED;
+        }
+        e.x += e.vx * dt;
+        e.y += e.vy * dt;
+        if (dist2(p, e) < (p.r + e.r) ** 2 && p.invuln <= 0) {
+          p.hp -= e.type === "tank" ? 34 : 20;
+          p.invuln = .7;
+          game.shake = 14;
+          game.flash = 1;
+          game.combo = 1;
+          burst(p.x, p.y, "#ff6b6b", 22, 240);
+          playNoise(.26, .13, 170);
+          playTone(88, .22, "sawtooth", .09, -38);
+          if (p.hp <= 0) endGame();
+        }
+      }
+    }
+
+    function updatePickups(dt) {
+      const p = game.player;
+      for (const item of game.pickups) {
+        const angle = Math.atan2(p.y - item.y, p.x - item.x);
+        const pull = dist2(p, item) < 160 ** 2 ? 360 : 0;
+        item.vx += Math.cos(angle) * pull * dt;
+        item.vy += Math.sin(angle) * pull * dt;
+        item.x += item.vx * dt;
+        item.y += item.vy * dt;
+        item.life -= dt;
+        if (dist2(p, item) < (p.r + item.r) ** 2) {
+          item.life = 0;
+          game.score += 65 * game.combo;
+          p.heat = Math.max(0, p.heat - 8);
+          playTone(720, .08, "sine", .04, 360);
+        }
+      }
+      game.pickups = game.pickups.filter(item => item.life > 0);
+    }
+
+    function updateParticles(dt) {
+      for (const particle of game.particles) {
+        particle.x += particle.vx * dt;
+        particle.y += particle.vy * dt;
+        particle.vx *= .96;
+        particle.vy *= .96;
+        particle.life -= dt;
+      }
+      game.particles = game.particles.filter(p => p.life > 0);
+    }
+
+    function updateStars(dt) {
+      for (const star of game.stars) {
+        star.y += (30 + game.wave * 3) * star.z * dt;
+        star.twinkle += dt * (2 + star.z);
+        if (star.y > height + 4) {
+          star.x = Math.random() * width;
+          star.y = -4;
+        }
+      }
+    }
+
+    function killEnemy(e) {
+      game.enemies = game.enemies.filter(enemy => enemy !== e);
+      game.combo = Math.min(12, game.combo + 1);
+      game.comboTimer = 2.1;
+      game.score += e.value * game.combo;
+      game.shake = Math.max(game.shake, e.type === "tank" ? 18 : 8);
+      game.slowmo = e.type === "tank" ? .22 : .07;
+      burst(e.x, e.y, e.color, e.type === "tank" ? 48 : 22, e.type === "tank" ? 360 : 220);
+      if (Math.random() < .62 || e.type === "tank") dropPickup(e.x, e.y);
+      playNoise(e.type === "tank" ? .36 : .18, e.type === "tank" ? .15 : .08, e.type === "tank" ? 90 : 420);
+      playTone(e.type === "tank" ? 74 : 132, .2, "sawtooth", .055, -50);
+    }
+
+    function dropPickup(x, y) {
+      game.pickups.push({
+        x,
+        y,
+        vx: rand(-70, 70),
+        vy: rand(-70, 70),
+        r: 7,
+        life: 7
+      });
+    }
+
+    function burst(x, y, color, count, force) {
+      for (let i = 0; i < count; i++) {
+        const angle = rand(0, TAU);
+        const speed = rand(force * .25, force);
+        game.particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r: rand(1.5, 4.8),
+          life: rand(.28, .88),
+          color
+        });
+      }
+    }
+
+    function endGame() {
+      game.running = false;
+      ui.overlay.classList.remove("hidden");
+      ui.overlay.querySelector("h1").textContent = "Game Over";
+      ui.overlay.querySelectorAll("p")[0].textContent = `Score ${game.score}`;
+      ui.overlay.querySelectorAll("p")[1].textContent = "Enter or click to retry.";
+      ui.overlay.querySelectorAll("p")[2].textContent = "";
+    }
+
+    function draw() {
+      if (!game) return;
+      ctx.save();
+      const shakeX = rand(-game.shake, game.shake);
+      const shakeY = rand(-game.shake, game.shake);
+      ctx.clearRect(0, 0, width, height);
+      ctx.translate(shakeX, shakeY);
+      drawBackground();
+      drawPickups();
+      drawBullets();
+      drawEnemies();
+      drawPlayer();
+      drawParticles();
+      ctx.restore();
+
+      if (game.flash > 0) {
+        ctx.fillStyle = `rgba(255, 55, 85, ${game.flash * .16})`;
+        ctx.fillRect(0, 0, width, height);
+      }
+      requestAnimationFrame(loop);
+    }
+
+    function drawBackground() {
+      ctx.fillStyle = "#070a12";
+      ctx.fillRect(0, 0, width, height);
+      for (const star of game.stars) {
+        const alpha = .24 + Math.sin(star.twinkle) * .16 + star.z * .44;
+        ctx.fillStyle = `rgba(190, 217, 255, ${alpha})`;
+        ctx.fillRect(star.x, star.y, star.z * 2.2, star.z * 2.2);
+      }
+      ctx.strokeStyle = "rgba(80, 150, 255, .1)";
+      ctx.lineWidth = 1;
+      for (let y = (game.waveTimer * 32) % 42; y < height; y += 42) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+    }
+
+    function drawPlayer() {
+      const p = game.player;
+      const angle = Math.atan2(mouse.y - p.y, mouse.x - p.x);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(angle);
+      ctx.fillStyle = p.invuln > 0 && Math.floor(p.invuln * 16) % 2 ? "rgba(255,255,255,.45)" : "#7df9ff";
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = "#51e7ff";
+      ctx.beginPath();
+      ctx.moveTo(20, 0);
+      ctx.lineTo(-14, -12);
+      ctx.lineTo(-8, 0);
+      ctx.lineTo(-14, 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(2, -3, 20, 6);
+      ctx.restore();
+    }
+
+    function drawEnemies() {
+      for (const e of game.enemies) {
+        const sprite = getEnemyImage(e.spriteIndex);
+        ctx.save();
+        ctx.translate(e.x, e.y);
+        ctx.rotate(Math.sin(e.wobble) * .16);
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = e.color;
+        if (sprite) {
+          const size = e.r * (e.type === "tank" ? 3.25 : 2.95);
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(0, 0, size * .48, 0, TAU);
+          ctx.clip();
+          ctx.drawImage(sprite, -size / 2, -size / 2, size, size);
+          ctx.restore();
+        } else {
+          ctx.fillStyle = e.color;
+          ctx.beginPath();
+          ctx.arc(0, 0, e.r * 1.08, 0, TAU);
+          ctx.fill();
+          ctx.fillStyle = "#fff7d6";
+          ctx.font = `700 ${Math.max(13, e.r * .9)}px "Segoe UI", sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("風太", 0, 1);
+        }
+        ctx.strokeStyle = "rgba(255,255,255,.55)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, e.r * 1.1, 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function getEnemyImage(index) {
+      const loaded = enemyImages.filter(img => img.complete && img.naturalWidth > 0);
+      return loaded.length ? loaded[index % loaded.length] : null;
+    }
+
+    function drawBullets() {
+      ctx.fillStyle = "#eaff8a";
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = "#eaff8a";
+      for (const b of game.bullets) {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, TAU);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    function drawPickups() {
+      for (const item of game.pickups) {
+        ctx.fillStyle = "rgba(73, 255, 181, .92)";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#49ffb5";
+        ctx.beginPath();
+        ctx.arc(item.x, item.y, item.r + Math.sin(item.life * 8) * 1.5, 0, TAU);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    function drawParticles() {
+      for (const p of game.particles) {
+        ctx.globalAlpha = clamp(p.life, 0, 1);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, TAU);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function updateHud() {
+      ui.score.textContent = game.score;
+      ui.wave.textContent = game.wave;
+      ui.combo.textContent = `x${game.combo}`;
+      ui.health.style.transform = `scaleX(${clamp(game.player.hp / 100, 0, 1)})`;
+      ui.heat.textContent = `Heat ${Math.round(game.player.heat)}%`;
+    }
+
+    function loop(now = performance.now()) {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+      update(dt);
+      draw();
+    }
+
+    addEventListener("resize", resize);
+    addEventListener("keydown", event => {
+      keys.add(event.code);
+      if (event.code === "Enter") {
+        ensureAudio().resume();
+        resetGame();
+      }
+    });
+    addEventListener("keyup", event => keys.delete(event.code));
+    addEventListener("pointermove", event => {
+      mouse.x = event.clientX;
+      mouse.y = event.clientY;
+    });
+    addEventListener("pointerdown", event => {
+      mouse.down = true;
+      mouse.x = event.clientX;
+      mouse.y = event.clientY;
+      ensureAudio().resume();
+      if (!game?.running) resetGame();
+    });
+    addEventListener("pointerup", () => {
+      mouse.down = false;
+    });
+
+    resize();
+    resetGame();
+    game.running = false;
+    ui.overlay.classList.remove("hidden");
+    draw();
+  </script>
 </body>
 </html>
