@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>風太シューティング</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <canvas id="gameCanvas" width="960" height="640" aria-label="風太シューティングのゲーム画面"></canvas>
+    <div id="decorFutas" class="floating-futas active" aria-hidden="true">
+      <img class="futa-sticker sticker-pop" src="assets/futa.png" alt="" onerror="this.style.display='none'">
+      <img class="futa-sticker sticker-gold" src="assets/futa_golden.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
+      <img class="futa-sticker sticker-speed" src="assets/futa_speed.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
+      <img class="futa-sticker sticker-mini" src="assets/futa_mini.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
+    </div>
+
+    <section id="titleScreen" class="screen screen-active">
+      <div class="panel title-panel">
+        <p class="eyebrow">60秒カジュアルシューティング</p>
+        <h1>風太シューティング</h1>
+        <div class="futa-lineup" aria-hidden="true">
+          <img class="lineup-img lineup-normal" src="assets/futa.png" alt="" onerror="this.style.display='none'">
+          <img class="lineup-img lineup-rapid" src="assets/futa_rapid.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
+          <img class="lineup-img lineup-slow" src="assets/futa_slow.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
+          <img class="lineup-img lineup-golden" src="assets/futa_golden.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
+        </div>
+        <p class="lead">動き回る風太を狙ってコンボをつなげよう。</p>
+        <button id="startButton" class="primary-button">スタート</button>
+        <button id="soundToggleTitle" class="secondary-button" type="button">SOUND ON</button>
+        <div class="info-grid">
+          <p>クリック / タップ / Space：発射</p>
+          <p>マウス / ドラッグ / ← →：移動</p>
+          <p>スマホ：下の左右ボタンでも操作</p>
+        </div>
+        <p class="highscore-line">最高スコア <strong id="titleHighScore">0</strong></p>
+      </div>
+    </section>
+
+    <section id="hud" class="hud" aria-live="polite">
+      <div><span>SCORE</span><strong id="scoreDisplay">0</strong></div>
+      <div><span>HP</span><strong id="hpDisplay">5</strong></div>
+      <div><span>TIME</span><strong id="timeDisplay">60.0</strong></div>
+      <div><span>COMBO</span><strong id="comboDisplay">0</strong></div>
+      <div><span>POWER</span><strong id="powerDisplay">なし</strong></div>
+      <div><span>BEST</span><strong id="gameHighScore">0</strong></div>
+    </section>
+
+    <button id="soundToggleGame" class="sound-button" type="button">SOUND ON</button>
+
+    <div id="comboSplash" class="combo-splash"></div>
+
+    <section id="mobileControls" class="mobile-controls" aria-label="スマホ操作">
+      <button id="leftButton" type="button">←</button>
+      <button id="fireButton" type="button">FIRE</button>
+      <button id="rightButton" type="button">→</button>
+    </section>
+
+    <section id="resultScreen" class="screen">
+      <div class="panel result-panel">
+        <p class="eyebrow">RESULT</p>
+        <img class="result-futa" src="assets/futa_result.png" alt="" onerror="this.onerror=null;this.src='assets/futa.png'">
+        <h2 id="rankDisplay">Cランク</h2>
+        <dl class="result-list">
+          <div><dt>最終スコア</dt><dd id="finalScore">0</dd></div>
+          <div><dt>最大コンボ</dt><dd id="maxCombo">0</dd></div>
+          <div><dt>命中率</dt><dd id="accuracy">0%</dd></div>
+          <div><dt>最高スコア</dt><dd id="resultHighScore">0</dd></div>
+        </dl>
+        <p id="newRecord" class="new-record"></p>
+        <div class="button-row">
+          <button id="restartButton" class="primary-button">もう一度遊ぶ</button>
+          <button id="backTitleButton" class="secondary-button">タイトルに戻る</button>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
