@@ -212,6 +212,11 @@
       });
       this.bindHoldButton(ui.left, -1);
       this.bindHoldButton(ui.right, 1);
+      for (const button of [ui.left, ui.right, ui.fire]) {
+        button.addEventListener("contextmenu", (event) => event.preventDefault());
+        button.addEventListener("selectstart", (event) => event.preventDefault());
+        button.addEventListener("dragstart", (event) => event.preventDefault());
+      }
 
       window.addEventListener("keydown", (event) => {
         if (["ArrowLeft", "ArrowRight", "Space"].includes(event.code))
@@ -258,6 +263,9 @@
       button.addEventListener("pointerup", stop);
       button.addEventListener("pointercancel", stop);
       button.addEventListener("pointerleave", stop);
+      button.addEventListener("contextmenu", (event) => event.preventDefault());
+      button.addEventListener("selectstart", (event) => event.preventDefault());
+      button.addEventListener("dragstart", (event) => event.preventDefault());
     }
 
     start() {
@@ -332,28 +340,28 @@
       const slowFactor = this.powerType === "slow" ? 0.45 : 1;
       const speed = (1 + progress * 1.45) * slowFactor;
       const feintActive = this.elapsed > 30 && this.target.feintTimer > 0;
-      const chaos = Math.max(0, (15 - this.timeLeft) / 15);
+      const chaos = Math.max(0, (12 - this.timeLeft) / 12);
       const drift =
-        Math.sin(this.elapsed * (2.2 + this.target.mood + chaos * 5.5)) *
-        (55 + chaos * 115);
+        Math.sin(this.elapsed * (2.2 + this.target.mood + chaos * 3.2)) *
+        (55 + chaos * 58);
       this.target.feintTimer -= dt;
       this.target.evadeCooldown -= dt;
       if (this.elapsed > 30 && Math.random() < dt * 0.9) {
         this.target.feintTimer = 0.34;
         this.target.vx *= -1.25;
       }
-      if (chaos > 0 && Math.random() < dt * (1.8 + chaos * 4)) {
-        this.target.vx += (Math.random() - 0.5) * (240 + chaos * 420);
-        this.target.vy += (Math.random() - 0.5) * (180 + chaos * 320);
-        this.target.spin += (Math.random() - 0.5) * chaos;
+      if (chaos > 0 && Math.random() < dt * (0.85 + chaos * 1.8)) {
+        this.target.vx += (Math.random() - 0.5) * (120 + chaos * 190);
+        this.target.vy += (Math.random() - 0.5) * (90 + chaos * 140);
+        this.target.spin += (Math.random() - 0.5) * chaos * 0.45;
       }
       if (Math.random() < dt * 0.14)
         this.target.vy += (Math.random() - 0.5) * 150;
       this.target.x +=
         (this.target.vx * speed + drift * (feintActive ? -2 : 1)) * dt +
-        (Math.random() - 0.5) * chaos * 18;
+        (Math.random() - 0.5) * chaos * 7;
       this.target.y +=
-        this.target.vy * speed * dt + (Math.random() - 0.5) * chaos * 14;
+        this.target.vy * speed * dt + (Math.random() - 0.5) * chaos * 6;
       const targetSize = this.getTargetSize();
       const marginX = targetSize.width * this.target.scale * 0.5 + 18;
       const marginY = targetSize.height * this.target.scale * 0.5 + 18;

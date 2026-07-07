@@ -59,6 +59,7 @@ button {
   display: none;
   place-items: center;
   padding: 18px;
+  overflow: auto;
   background: linear-gradient(135deg, rgba(34, 17, 80, 0.34), rgba(255, 79, 163, 0.18));
   backdrop-filter: blur(4px);
 }
@@ -122,6 +123,8 @@ button {
 
 .panel {
   width: min(560px, 94vw);
+  max-height: calc(100dvh - 36px);
+  overflow: auto;
   padding: clamp(20px, 5vw, 38px);
   text-align: center;
   border: 3px solid rgba(255, 255, 255, 0.85);
@@ -329,6 +332,10 @@ h2 {
   gap: 10px;
   width: min(520px, calc(100vw - 24px));
   transform: translateX(-50%);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
 }
 
 .mobile-controls.active {
@@ -346,6 +353,11 @@ h2 {
   background: linear-gradient(#ffffff, #ffd84d);
   box-shadow: 0 6px 0 #b46a10;
   font-size: 1.2rem;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
 }
 
 .result-list {
@@ -419,6 +431,30 @@ h2 {
 
   .title-panel .secondary-button {
     margin: 14px 0 0;
+  }
+
+  .panel {
+    width: min(520px, 96vw);
+    max-height: calc(100dvh - 24px);
+    padding: 16px;
+  }
+
+  .result-panel h2 {
+    font-size: clamp(1.55rem, 8vw, 2.4rem);
+  }
+
+  .result-list {
+    gap: 7px;
+    margin: 12px 0 10px;
+  }
+
+  .result-list div {
+    padding: 8px 10px;
+  }
+
+  .result-futa {
+    width: clamp(48px, 15vw, 82px);
+    margin: 2px auto 8px;
   }
 
   .floating-futas {
